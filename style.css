@@ -1,0 +1,136 @@
+:root {
+  --bg: #f6f5f1;
+  --ink: #1d1d1f;
+  --muted: #6e6e73;
+  --line: #dcdad3;
+  --accent: #2f6f5e;
+  --card: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141414;
+    --ink: #ecebe7;
+    --muted: #9a9a9f;
+    --line: #2c2c2c;
+    --accent: #7cc4ad;
+    --card: #1c1c1c;
+  }
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+  line-height: 1.9;
+  -webkit-font-smoothing: antialiased;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.hero {
+  padding: 96px 0 64px;
+  border-bottom: 1px solid var(--line);
+}
+
+.hello {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.85rem;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+h1 {
+  font-size: clamp(3rem, 12vw, 5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 24px;
+}
+
+.lead {
+  font-size: 1.05rem;
+  color: var(--muted);
+}
+
+.section {
+  padding: 56px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.num {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--accent);
+}
+
+.works {
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+
+.work {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.work h3 {
+  font-size: 1rem;
+  margin: 6px 0 4px;
+}
+
+.work p {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.work.soon {
+  background: transparent;
+  border-style: dashed;
+}
+
+.tag {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.7rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.work.soon .tag { color: var(--muted); }
+
+.links { list-style: none; }
+
+.links a {
+  color: var(--ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent);
+  padding-bottom: 2px;
+}
+
+.links a:hover { color: var(--accent); }
+
+footer {
+  padding: 40px 0 56px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+@media (min-width: 640px) {
+  .works { grid-template-columns: repeat(3, 1fr); }
+}
