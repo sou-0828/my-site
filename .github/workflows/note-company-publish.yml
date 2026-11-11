@@ -1,0 +1,52 @@
+name: note会社 / 予約投稿
+
+on:
+  schedule:
+    - cron: "*/15 * * * *" # 15分おきに、時刻が来たポストを投稿
+  workflow_dispatch:
+    inputs:
+      launch_day:
+        description: "noteを公開した日の下書き (YYYY-MM-DD)。入れると予約を確定します"
+        required: false
+      note_url:
+        description: "公開したnoteのURL"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency: note-company-state
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: note-company
+    env:
+      X_API_KEY: ${{ secrets.X_API_KEY }}
+      X_API_SECRET: ${{ secrets.X_API_SECRET }}
+      X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+      X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+      THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+      THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests requests-oauthlib pydantic anthropic
+      - name: 予約を確定（手動実行でURLを入れた場合）
+        if: ${{ inputs.launch_day != '' && inputs.note_url != '' }}
+        env:
+          LAUNCH_DAY: ${{ inputs.launch_day }}
+          NOTE_URL: ${{ inputs.note_url }}
+        run: python -m company launch --day "$LAUNCH_DAY" --url "$NOTE_URL"
+      - run: python -m company publish-due
+      - name: 投稿結果を保存
+        run: |
+          git config user.name "note-company-bot"
+          git config user.email "note-company-bot@users.noreply.github.com"
+          git add state/
+          git diff --cached --quiet || (git commit -m "note会社: 予約投稿の状態を更新" && git push)

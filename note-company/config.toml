@@ -1,0 +1,34 @@
+# note自動販売カンパニー 設定ファイル
+# ここを書き換えるだけで「何のジャンルで売るか」「誰が担当するか」を変えられます。
+
+[company]
+# 発信ジャンル（リサーチ・企画の軸になります）
+genre = "AI活用・副業・個人の発信力"
+# 想定読者
+reader = "本業がありつつ、AIやSNSで月5〜10万円を稼ぎたい20〜40代の会社員"
+# 書き手のキャラクター（執筆・営業の口調に反映）
+persona = "会社員をしながらnoteとSNSで収益化してきた実践者。数字と体験ベースで語る。偉そうにしない。"
+# noteのクリエイターページURL（営業ポストで使う）
+note_profile_url = "https://note.com/your_id"
+
+[models]
+# 執筆・企画など頭を使う担当
+main = "claude-opus-5-5"
+# 検品担当は「別のAI」として別モデルを使う
+reviewer = "claude-sonnet-5-5"
+
+[research]
+# X / Threads で検索するキーワード（毎朝この語で伸びているポストを集めます）
+keywords = ["note 売れた", "AI 副業", "ChatGPT 使い方", "Claude 活用", "SNS 収益化", "有料note"]
+# 何件以上いいねされたポストを「伸びている」とみなすか（Xのみ）
+min_likes = 100
+# 1キーワードあたりの最大取得件数
+max_per_keyword = 50
+
+[sales]
+# 1本のnoteにつき作る集客ポスト数
+posts_per_note = 6
+# 投稿する時刻（日本時間、HH:MM）。ここから順に割り当てます
+slots = ["07:30", "12:10", "19:00", "21:30"]
+# 投稿先: "x", "threads" のどちらか、または両方
+channels = ["x", "threads"]

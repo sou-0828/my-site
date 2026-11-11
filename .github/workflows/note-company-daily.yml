@@ -1,0 +1,55 @@
+name: note会社 / 毎朝の制作ライン
+
+on:
+  schedule:
+    - cron: "0 21 * * *" # 毎朝 6:00 JST
+  workflow_dispatch:
+    inputs:
+      from:
+        description: "途中の担当から再開 (research/plan/write/review/design/sales)"
+        required: false
+
+permissions:
+  contents: write
+
+concurrency: note-company-state
+
+jobs:
+  daily:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: note-company
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+      THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt && python -m playwright install --with-deps chromium
+      - run: sudo apt-get install -y fonts-noto-cjk
+      - name: リサーチ→企画→執筆→検品→デザイン→営業
+        env:
+          FROM_STEP: ${{ inputs.from }}
+        run: |
+          if [ -n "$FROM_STEP" ]; then
+            python -m company daily --from "$FROM_STEP"
+          else
+            python -m company daily
+          fi
+      - name: 原稿・画像を成果物として保存（リポジトリには載せない）
+        uses: actions/upload-artifact@v4
+        with:
+          name: note-${{ github.run_id }}
+          path: note-company/output/
+          retention-days: 14
+      - name: 営業キューを保存
+        run: |
+          git config user.name "note-company-bot"
+          git config user.email "note-company-bot@users.noreply.github.com"
+          git add state/
+          git diff --cached --quiet || (git commit -m "note会社: 営業ポスト下書きを追加" && git push)
