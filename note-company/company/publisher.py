@@ -1,14 +1,16 @@
-"""予約投稿の実行係：時刻が来たポストを X / Threads に投稿する（cron で数分おきに呼ぶ）。"""
+"""予約投稿の実行係：時刻が来たポストを X / Threads に投稿する（`start` が数分おきに呼ぶ）。"""
 from __future__ import annotations
 
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import requests
 
 from . import storage
-from .sales import load_queue, save_queue
+from .sales import load_queue, next_slots, save_queue
+
+LATE_LIMIT = timedelta(minutes=60)  # PCが止まっていて大きく遅れたポストはまとめて出さず、次の枠へ回す
 
 
 def post_x(text: str) -> str:
@@ -48,6 +50,18 @@ def publish_due(dry_run: bool = False) -> int:
     q = load_queue()
     now = storage.now_jst()
     sent = 0
+    late = sorted(
+        (x for x in q if x["status"] == "scheduled" and now - datetime.fromisoformat(x["scheduled_at"]) > LATE_LIMIT),
+        key=lambda x: x["scheduled_at"],
+    )
+    if late and not dry_run:
+        groups = sorted({x["scheduled_at"] for x in late})
+        slots = next_slots(len(groups), storage.config()["sales"]["slots"], now)
+        moved = dict(zip(groups, slots))
+        for x in late:
+            x["scheduled_at"] = moved[x["scheduled_at"]].isoformat()
+        save_queue(q)
+        print(f"[publish] 遅れていた {len(late)} 件を次の投稿枠へ移動しました")
     for x in sorted(q, key=lambda x: x.get("scheduled_at") or ""):
         if x["status"] != "scheduled" or datetime.fromisoformat(x["scheduled_at"]) > now:
             continue

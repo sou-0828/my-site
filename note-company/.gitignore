@@ -2,3 +2,4 @@
 __pycache__/
 # 有料部分を含む成果物は公開リポジトリに載せない
 output/
+state/last_daily.txt

@@ -15,6 +15,23 @@ STATE = ROOT / "state"
 JST = timezone(timedelta(hours=9))
 
 
+def load_env() -> None:
+    """note-company/.env を読み込む（既に設定済みの環境変数は上書きしない）。"""
+    import os
+
+    path = ROOT / ".env"
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        k, v = line.split("=", 1)
+        v = v.strip().strip('"').strip("'")
+        if v:
+            os.environ.setdefault(k.strip(), v)
+
+
 def now_jst() -> datetime:
     return datetime.now(JST)
 

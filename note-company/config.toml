@@ -11,6 +11,12 @@ persona = "会社員をしながらnoteとSNSで収益化してきた実践者�
 # noteのクリエイターページURL（営業ポストで使う）
 note_profile_url = "https://note.com/your_id"
 
+[schedule]
+# 毎朝の制作ラインを始める時刻（日本時間）
+daily_at = "06:00"
+# 予約投稿をチェックする間隔（分）
+publish_every_min = 5
+
 [models]
 # 執筆・企画など頭を使う担当
 main = "claude-opus-5-5"

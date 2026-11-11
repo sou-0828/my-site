@@ -14,28 +14,31 @@ AI社員6人で「リサーチ → 企画 → 執筆 → 検品 → デザイン
 ## 1日の流れ
 
 ```
-06:00  GitHub Actions が起動（自動）
-       リサーチ → 企画 → 執筆 → 検品 → デザイン → 営業（下書き）
-       ↓ 成果物は Actions の Artifacts に保存（article.md + images/）
+PCで start を起動しておく（起動しっぱなし）
+06:00  リサーチ → 企画 → 執筆 → 検品 → デザイン → 営業（下書き）を自動実行
+       → output/今日の日付/article.md と images/ ができる
 あなた  article.md と画像を note に貼って公開（※noteに公式APIが無いため、ここだけ手動）
-       ↓ 公開URLを渡す
-       Actions「note会社 / 予約投稿」を手動実行し launch_day と note_url を入力
+       → python -m company launch --day 今日の日付 --url 公開したURL
        → 営業ポストが次の投稿枠（config.toml の slots）に自動で予約される
-15分毎 時刻が来たポストを X / Threads に自動投稿
+5分毎  時刻が来たポストを X / Threads に自動投稿
 ```
 
 公開ボタンだけ人が押すのは、note に公式の投稿APIが無いことに加えて、有料記事を中身を見ずに出さないための最終チェックも兼ねています。
 
 ## セットアップ
 
-### 1. データを入れる（ここが売上を左右します）
+### 1. インストール（最初の1回だけ）
 
-- `data/sales.csv` … noteのダッシュボードの数字を転記（今入っているのはサンプルなので消してください）
-- `data/notes/` … 売れた自分のnoteの本文を 1本 = 1ファイル で
-- `data/letters/` … 成約したセールスレター・LP・販売文を 1本 = 1ファイル で
-- `config.toml` … ジャンル、読者、書き手のキャラ、検索キーワード、投稿時刻
+Python 3.11 以上が必要です。
 
-### 2. APIキーを用意する
+```bash
+cd note-company
+pip install -r requirements.txt
+python -m playwright install chromium
+cp .env.example .env      # Windows は copy .env.example .env
+```
+
+`.env` をメモ帳などで開いて、APIキーを貼り付けます（起動時に自動で読み込まれます）。
 
 | キー | 用途 | 無いとどうなる |
 |---|---|---|
@@ -46,31 +49,34 @@ AI社員6人で「リサーチ → 企画 → 執筆 → 検品 → デザイン
 
 X の検索・投稿には X API の有料プランが必要です。
 
-### 3-a. GitHub Actions で毎朝動かす
+### 2. データを入れる（ここが売上を左右します）
 
-1. リポジトリの Settings → Secrets and variables → Actions に上のキーを登録
-2. `.github/workflows/note-company-daily.yml` と `note-company-publish.yml` がデフォルトブランチ（main）に入れば、スケジュール実行が始まります
+- `data/sales.csv` … noteのダッシュボードの数字を転記（今入っているのはサンプルなので消してください）
+- `data/notes/` … 売れた自分のnoteの本文を 1本 = 1ファイル で
+- `data/letters/` … 成約したセールスレター・LP・販売文を 1本 = 1ファイル で
+- `config.toml` … ジャンル、読者、書き手のキャラ、検索キーワード、制作時刻、投稿時刻
 
-> ⚠ **公開リポジトリでは使わないでください。** Artifacts（有料部分を含む原稿）は、公開リポジトリだと誰でもダウンロードできます。private リポジトリにこの `note-company/` フォルダごと移すのがおすすめです。
+### 3. 起動する
 
-### 3-b. 自分のPCで動かす
+- **Mac**: `start.command` をダブルクリック
+- **Windows**: `start.bat` をダブルクリック
+- ターミナルから: `python -m company start`
+
+ウィンドウを開いている間、毎朝の制作と予約投稿が自動で回ります（閉じると止まります）。
+
+- PCがスリープ中は動きません。朝6時に寝ていた場合は、起きて起動した時点でその日の制作を始めます（1日1回だけ）。
+- PCが止まっていて投稿時刻を1時間以上過ぎたポストは、まとめて出さずに次の投稿枠へ自動で回します。
+
+## コマンド一覧
 
 ```bash
-cd note-company
-pip install -r requirements.txt
-python -m playwright install chromium
-cp .env.example .env   # 中身を埋めて
-set -a; source .env; set +a
-
-python -m company daily                      # 制作ライン一式
-python -m company launch --day 2026-11-11 --url https://note.com/xxx/n/yyy
+python -m company start                      # 常駐（毎朝の制作 + 予約投稿）
+python -m company daily                      # 制作ラインを今すぐ1回
+python -m company daily --from review        # 途中で失敗したら、その担当から再開
+python -m company launch --day 2026-11-11 --url https://note.com/xxx/n/yyy   # note公開後に予約確定
 python -m company queue                      # 予約状況を確認
-python -m company publish-due --dry-run      # 投稿せずに確認
+python -m company publish-due --dry-run      # 投稿せずに、今出るポストを確認
 ```
-
-cron 例: `*/15 * * * * cd /path/note-company && python -m company publish-due`
-
-途中で失敗したら、その担当から再開できます: `python -m company daily --from review`
 
 ## 出力（`output/YYYY-MM-DD/`）
 
