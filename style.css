@@ -132,5 +132,5 @@ footer {
 }
 
 @media (min-width: 640px) {
-  .works { grid-template-columns: repeat(3, 1fr); }
+  .works { grid-template-columns: repeat(2, 1fr); }
 }
